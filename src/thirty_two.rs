@@ -30,7 +30,7 @@ struct XxCore {
 #[cfg_attr(feature = "serialize", derive(Deserialize, Serialize))]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct XxHash32 {
-    total_len: u32,
+    total_len: u64,
     seed: u32,
     core: XxCore,
     #[cfg_attr(feature = "serialize", serde(flatten))]
@@ -177,7 +177,7 @@ impl XxHash32 {
             self.core.ingest_chunks(&mut remaining);
             self.buffer.set_data(remaining.remaining());
         }
-        self.total_len += bytes.len() as u32;
+        self.total_len += bytes.len() as u64;
     }
 
     // Consume bytes and try to make `self.buffer` empty.
@@ -199,14 +199,14 @@ impl XxHash32 {
     }
 
     pub(crate) fn finish(&self) -> u32 {
-        let mut hash = if self.total_len >= CHUNK_SIZE as u32 {
+        let mut hash = if self.total_len >= CHUNK_SIZE as u64 {
             // We have processed at least one full chunk
             self.core.finish()
         } else {
             self.seed.wrapping_add(PRIME_5)
         };
 
-        hash = hash.wrapping_add(self.total_len);
+        hash = hash.wrapping_add(self.total_len as u32);
 
         let mut buffered_u32s = UnalignedBuffer::<u32>::new(self.buffer.data());
         for buffered_u32 in &mut buffered_u32s {
@@ -238,7 +238,7 @@ impl XxHash32 {
         self.seed
     }
 
-    pub fn total_len(&self) -> u32 {
+    pub fn total_len(&self) -> u64 {
         self.total_len
     }
 }
