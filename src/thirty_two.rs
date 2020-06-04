@@ -234,6 +234,11 @@ impl XxHash32 {
         hash
     }
 
+    #[inline]
+    pub fn finish_32(&self) -> u32 {
+        self.finish()
+    }
+
     pub fn seed(&self) -> u32 {
         self.seed
     }
